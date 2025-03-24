@@ -1,0 +1,35 @@
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("Z hub", "Sentinel")
+local Tab = Window:NewTab("piggy")
+local Section = Tab:NewSection("Piggy")
+Section:NewButton("piggy", "piggy", function()
+loadstring(game:HttpGet("https://rawscripts.net/raw/Piggy-Roblox-Script-V1-15877"))()
+end)
+Section:NewButton("piggy veno", "ButtonInfo", function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Uhhhhhhid1/Lmaoiud/refs/heads/main/Piggy2.txt"))() 
+end)
+local Tab = Window:NewTab("BLOX Fruit")
+local Section = Tab:NewSection("Blox fruit")
+Section:NewButton("W azure", "Cool", function()
+getgenv().Team = "Pirates"
+getgenv().FixCrash = false
+getgenv().FixCrash2 = false
+loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/3b2169cf53bc6104dabe8e19562e5cc2.lua"))()
+end)
+Section:NewButton("Redz", "ButtonInfo", function() 
+loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Redz-Hub-2025-27246"))() 
+end)
+local Tab = Window:NewTab("blue lock rivals")
+local Section = Tab:NewSection("blue lock") 
+
+Section:NewButton("blue lock", "control ball", function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/RedJDark/CONTROL-SCRIPTT/refs/heads/main/CONTROL"))()
+end) 
+local Tab = Window:NewTab("player")
+local Section = Tab:NewSection("Players")
+Section:NewSlider("speed", "SliderInfo", 500, 0, function(s) -- 500 (MaxValue) | 0 (MinValue)
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 500
+end)
+Section:NewSlider("SliderText", "SliderInfo", 500, 0, function(s) -- 500 (MaxValue) | 0 (MinValue)
+    game.Players.LocalPlayer.Character.Humanoid.jumpPower = s
+end)
