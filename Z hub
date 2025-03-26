@@ -62,3 +62,4 @@ local Tab = Window:NewTab("fisch")
 local Section = Tab:NewSection("fisch")
 Section:NewButton("fisch", "ButtonInfo", function()loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/cba17b913ee63c7bfdbb9301e2d87c8b.lua"))()
 end)
+
