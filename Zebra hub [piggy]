@@ -71,88 +71,45 @@ RunService.Heartbeat:Connect(function()
 end)
   	end    
 })
-
---[[
-Name = <string> - The name of the button.
-Callback = <function> - The function of the button.
-]]
 local Tab = Window:MakeTab({
-	Name = "Others",
+	Name = "others",
 	Icon = "rbxassetid://4483345998",
 	PremiumOnly = false
 })
-
---[[
-Name = <string> - The name of the tab.
-Icon = <string> - The icon of the tab.
-PremiumOnly = <bool> - Makes the tab accessible to Sirus Premium users only.
-]]
 local Section = Tab:AddSection({
-	Name = "others"
+	Name = "Others"
 })
-
---[[
-Name = <string> - The name of the section.
-]]
 Tab:AddButton({
-	Name = "Fly",
+	Name = "Fly gui",
 	Callback = function()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
   	end    
 })
-
---[[
-Name = <string> - The name of the button.
-Callback = <function> - The function of the button.
-]]
 Tab:AddButton({
 	Name = "Infinite yield",
 	Callback = function()
 loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+  	end   
+})
+Tab:AddButton({
+	Name = "nameless admin",
+	Callback = function()
+--[[
+	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
+]]
+loadstring(game:HttpGet('https://raw.githubusercontent.com/FilteringEnabled/NamelessAdmin/main/Source'))()
   	end    
 })
-
+Tab:AddButton({
+	Name = "fog remover",
+	Callback = function()
 --[[
-Name = <string> - The name of the button.
-Callback = <function> - The function of the button.
+	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
 ]]
-local Tab = Window:MakeTab({
-	Name = "Player",
-	Icon = "rbxassetid://4483345998",
-	PremiumOnly = false
+game.Lighting.FogEnd = 100000
+game.Lighting.FogStart = 0
+game.Lighting.ClockTime = 14
+game.Lighting.Brightness = 2
+game.Lighting.GlobalShadows = false 
+  	end    
 })
-
---[[
-Name = <string> - The name of the tab.
-Icon = <string> - The icon of the tab.
-PremiumOnly = <bool> - Makes the tab accessible to Sirus Premium users only.
-]]
-local Section = Tab:AddSection({
-	Name = "player"
-})
-
---[[
-Name = <string> - The name of the section.
-]]
-Tab:AddSlider({
-	Name = "Slider",
-	Min = 0,
-	Max = 500,
-	Default = 5,
-	Color = Color3.fromRGB(255,255,255),
-	Increment = 500,
-	ValueName = "speed",
-	Callback = function(Value)
-Local.Player= game.Players.LocalPlayer.WalkSpeed
-	end    
-})
-
---[[
-Name = <string> - The name of the slider.
-Min = <number> - The minimal value of the slider.
-Max = <number> - The maxium value of the slider.
-Increment = <number> - How much the slider will change value when dragging.
-Default = <number> - The default value of the slider.
-ValueName = <string> - The text after the value number.
-Callback = <function> - The function of the slider.
-]]
