@@ -1,3 +1,4 @@
+
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
 local Window = OrionLib:MakeWindow({Name = "Zebra hub", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
 
@@ -111,5 +112,11 @@ game.Lighting.FogStart = 0
 game.Lighting.ClockTime = 14
 game.Lighting.Brightness = 2
 game.Lighting.GlobalShadows = false 
+  	end  
+})
+Tab:AddButton({
+	Name = "invisible",
+	Callback = function()
+loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Invisible-script-20557"))()
   	end    
 })
