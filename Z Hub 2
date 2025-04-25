@@ -40,3 +40,135 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/AAwful/VectorHub/main
 end) 
   	end    
 })
+Tab:AddButton({
+	Name = "Button!",
+	Callback = function()
+      		print("button pressed")
+  	end    
+})
+local Tab = Window:MakeTab({
+	Name = "PIGGY",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+local Section = Tab:AddSection({
+	Name = "piggy scripts"
+Tab:AddButton({
+	Name = "Peppa Pig",
+	Callback = function()
+loadstring(game:HttpGet("https://rawscripts.net/raw/Piggy-Roblox-Script-V1-15877"))()
+end)
+  	end    
+})
+Tab:AddButton({
+	Name = "Button!",
+	Callback = function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Uhhhhhhid1/Lmaoiud/refs/heads/main/Piggy2.txt"))() 
+end)
+  	end    
+})
+local Tab = Window:MakeTab({
+	Name = "Dead rails",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+local Section = Tab:AddSection({
+	Name = "dead rails scripts"
+})
+Tab:AddButton({
+	Name = "Button!",
+	Callback = function()
+loadstring(game:HttpGet("https://rawscripts.net/raw/Dead-Rails-Alpha-Autofarm-bond-30318"))()
+end)
+  	end    
+})
+Tab:AddButton({
+	Name = "Dead",
+	Callback = function()
+loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/e1cfd93b113a79773d93251b61af1e2f.lua"))()
+  	end    
+})
+Tab:AddButton({
+	Name = "gumanba",
+	Callback = function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/gumanba/Scripts/main/DeadRails"))()
+  	end    
+})
+local Tab = Window:MakeTab({
+	Name = "Fisch" ,
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+local Section = Tab:AddSection({
+	Name = "fisch"
+})
+Tab:AddButton({
+	Name = "fisch script!",
+	Callback = function()
+loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/cba17b913ee63c7bfdbb9301e2d87c8b.lua"))()
+end) 
+  	end    
+})
+local Tab = Window:MakeTab({
+	Name = "rivals",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+local Section = Tab:AddSection({
+	Name = "Rivals scripts"
+})
+Tab:AddButton({
+	Name = "Button!",
+	Callback = function()
+loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/2136f3786fd368193dd152c435d7ebfb.lua"))()
+end)
+  	end    
+})
+local Tab = Window:MakeTab({
+	Name = "arise crossover",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+local Section = Tab:AddSection({
+	Name = "Arise crossover scripts"
+})
+Tab:AddButton({
+	Name = "arise",
+	Callback = function()
+loadstring(game:HttpGet("https://rawscripts.net/raw/Arise-Crossover-Keyless-Script-33926"))()
+  	end   
+local Tab = Window:MakeTab({
+	Name = "Blue lock",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+local Section = Tab:AddSection({
+	Name = "Blue lock scripts"
+})
+Tab:AddButton({
+	Name = "omg hub",
+	Callback = function()
+loadstring(game:HttpGet("https://rawscripts.net/raw/UPD-Blue-Lock:-Rivals-OMG-Hub-29091"))() 
+  	end    
+})
+local Tab = Window:MakeTab({
+	Name = "doors",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+local Section = Tab:AddSection({
+	Name = "doors"
+})
+Tab:AddButton({
+	Name = "FFJ1",
+	Callback = function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/FFJ1/Roblox-Exploits/main/scripts/
+  	end    
+})
+Tab:AddButton({
+	Name = "Doors script",
+	Callback = function()
+loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/5d9744f681f6e50ab3fc5d9eb45c7cc7.lua"))()
+end) 
+  	end    
+})
