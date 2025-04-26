@@ -33,14 +33,6 @@ end)
   	end    
 })
 Tab:AddButton({
-	Name = "Vector",
-	Callback = function()
-_G.Mode = "Eng" -- ไทย | Vn
-loadstring(game:HttpGet("https://raw.githubusercontent.com/AAwful/VectorHub/main/Loader.lua"))()
-end) 
-  	end    
-})
-Tab:AddButton({
 	Name = "Button!",
 	Callback = function()
       		print("button pressed")
@@ -61,7 +53,7 @@ end)
   	end    
 })
 Tab:AddButton({
-	Name = "Button!",
+	Name = "Veno hub",
 	Callback = function()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/Uhhhhhhid1/Lmaoiud/refs/heads/main/Piggy2.txt"))() 
 end)
@@ -76,7 +68,7 @@ local Section = Tab:AddSection({
 	Name = "dead rails scripts"
 })
 Tab:AddButton({
-	Name = "Button!",
+	Name = "auto farm bond",
 	Callback = function()
 loadstring(game:HttpGet("https://rawscripts.net/raw/Dead-Rails-Alpha-Autofarm-bond-30318"))()
 end)
