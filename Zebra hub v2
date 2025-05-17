@@ -1,0 +1,180 @@
+-- Load Fluent UI library and managers
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+-- Create main window
+local Window = Fluent:CreateWindow({
+    Title = "Zebra hub v2 " .. Fluent.Version,
+    SubTitle = "made by Zack",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+-- Tabs
+local MainTab = Window:AddTab({ Title = "Main", Icon = "box" })
+local SettingsTab = Window:AddTab({ Title = "Settings", Icon = "settings" })
+local OthersTab = Window:AddTab({ Title = "Others", Icon = "file-plus" })
+
+-- Managers setup
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+SaveManager:SetFolder("ZebraHub")
+InterfaceManager:SetFolder("ZebraHub")
+InterfaceManager:BuildInterfaceSection(SettingsTab)
+SaveManager:BuildConfigSection(SettingsTab)
+
+-- Notify user
+Fluent:Notify({
+    Title = "Join our discord!",
+    Content = "Make sure to join our discord and subscribe to my channel!",
+    Duration = 5
+})
+
+-- Tools GUI Button
+MainTab:AddButton({
+    Title = "Tools Gui",
+    Description = "sigma",
+    Callback = function()
+        local PiggyGui = Instance.new("ScreenGui")
+        PiggyGui.Name = "PiggyGui"
+        PiggyGui.Parent = game.CoreGui
+
+        local ScrollingFrame = Instance.new("ScrollingFrame", PiggyGui)
+        ScrollingFrame.BackgroundColor3 = Color3.new(0.15, 0.15, 0.15)
+        ScrollingFrame.Position = UDim2.new(0, 0, 0.42, 0)
+        ScrollingFrame.Size = UDim2.new(0, 296, 0, 388)
+
+        local UIGridLayout = Instance.new("UIGridLayout", ScrollingFrame)
+        UIGridLayout.CellSize = UDim2.new(0, 90, 0, 90)
+
+        local MinimizeButton = Instance.new("TextButton", PiggyGui)
+        MinimizeButton.Size = UDim2.new(0, 50, 0, 25)
+        MinimizeButton.Position = UDim2.new(0.42, 0, 0.38, 0)
+        MinimizeButton.BackgroundColor3 = Color3.new(1, 0, 0)
+        MinimizeButton.Text = "Minimize"
+        MinimizeButton.TextColor3 = Color3.new(1, 1, 1)
+
+        local isMinimized = false
+
+        MinimizeButton.MouseButton1Click:Connect(function()
+            isMinimized = not isMinimized
+            ScrollingFrame.Visible = not isMinimized
+            MinimizeButton.Text = isMinimized and "Restore" or "Minimize"
+        end)
+
+        coroutine.wrap(function()
+            while true do
+                wait(1)
+                local a = workspace:GetDescendants()
+                local items = {}
+                local itemframes = ScrollingFrame:GetChildren()
+
+                for _, v in ipairs(itemframes) do
+                    if v:IsA("TextButton") then
+                        v:Destroy()
+                    end
+                end
+
+                for _, obj in ipairs(a) do
+                    if obj.Name == "ItemPickupScript" and obj.Parent:FindFirstChild("ClickDetector") then
+                        table.insert(items, obj.Parent)
+                    end
+                end
+
+                for i, object in ipairs(items) do
+                    local ItemFrame = Instance.new("TextButton", ScrollingFrame)
+                    ItemFrame.BackgroundColor3 = Color3.new(1, 1, 1)
+                    ItemFrame.BackgroundTransparency = 0.95
+                    ItemFrame.Size = UDim2.new(0, 100, 0, 100)
+                    ItemFrame.Text = ""
+
+                    local View = Instance.new("ViewportFrame", ItemFrame)
+                    View.Size = UDim2.new(1, 0, 1, 0)
+                    View.BackgroundTransparency = 1
+                    View.BorderSizePixel = 0
+
+                    local clone = object:Clone()
+                    clone.Parent = View
+
+                    local cam = Instance.new("Camera")
+                    cam.CameraType = Enum.CameraType.Fixed
+                    cam.CFrame = CFrame.new(object.Position + Vector3.new(0, 4, 3), object.Position)
+                    View.CurrentCamera = cam
+                    cam.Parent = View
+
+                    ItemFrame.MouseButton1Down:Connect(function()
+                        local char = game.Players.LocalPlayer.Character
+                        if char and object:FindFirstChild("ClickDetector") then
+                            local root = char:FindFirstChild("HumanoidRootPart")
+                            if root then
+                                local originalCFrame = root.CFrame
+                                root.CFrame = object.CFrame
+                                wait(0.1)
+                                fireclickdetector(object.ClickDetector)
+                                wait(0.3)
+                                root.CFrame = originalCFrame
+                            end
+                        end
+                    end)
+                end
+            end
+        end)()
+    end
+})
+
+-- Other MainTab buttons
+MainTab:AddButton({
+    Title = "Teleport",
+    Description = "Very important button",
+    Callback = function()
+        loadstring(game:HttpGet("https://pastebin.com/raw/AbDM2er1"))()
+    end
+})
+
+MainTab:AddButton({
+    Title = "Fly",
+    Description = "Very important button",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
+    end
+})
+
+MainTab:AddButton({
+    Title = "Invisible",
+    Description = "Very important button",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Invisible-script-20557"))()
+    end
+})
+
+-- OthersTab Buttons
+OthersTab:AddButton({
+    Title = "Infinite Yield",
+    Description = "Very important button",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+    end
+})
+
+OthersTab:AddButton({
+    Title = "Nameless Admin",
+    Description = "Very important button",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/FilteringEnabled/NamelessAdmin/main/Source"))()
+    end
+})
+MainTab:AddToggle("MyToggle", {
+    Title = "esp",
+    Description = "Toggle description",
+    Default = false,
+    Callback = function(state)
+        loadstring(game:HttpGet("https://pastebin.com/raw/s7viVmDR"))()
+    end
+})
+
+-- Finalize tab
+Window:SelectTab(MainTab)
