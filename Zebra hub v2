@@ -14,6 +14,110 @@ local Window = Fluent:CreateWindow({
     MinimizeKey = Enum.KeyCode.LeftControl
 })
 
+-- Create toggle GUI (should be created AFTER the Fluent window)
+local ToggleGui = Instance.new("ScreenGui")
+local Toggle = Instance.new("TextButton")
+local UICorner = Instance.new("UICorner")
+local ZebraIcon = Instance.new("ImageLabel")
+
+-- Properties
+ToggleGui.Name = "Toggle Gui"
+ToggleGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ToggleGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ToggleGui.ResetOnSpawn = false
+
+Toggle.Name = "Toggle"
+Toggle.Parent = ToggleGui
+Toggle.BackgroundColor3 = Color3.fromRGB(29, 29, 29)
+Toggle.Position = UDim2.new(0, 0, 0.454706937, 0)
+Toggle.Size = UDim2.new(0, 80, 0, 38)
+Toggle.Font = Enum.Font.SourceSans
+Toggle.Text = "Close Gui"
+Toggle.TextColor3 = Color3.fromRGB(203, 122, 49)
+Toggle.TextSize = 19.000
+Toggle.Draggable = true
+Toggle.TextXAlignment = Enum.TextXAlignment.Right -- Align text to right to make room for icon
+
+UICorner.Parent = Toggle
+
+-- Add Zebra Icon
+ZebraIcon.Name = "ZebraIcon"
+ZebraIcon.Parent = Toggle -- Parent to the button
+ZebraIcon.BackgroundTransparency = 1
+ZebraIcon.Image = "rbxassetid://6031225816" -- Zebra icon
+ZebraIcon.Position = UDim2.new(0, 5, 0.5, 0)
+ZebraIcon.AnchorPoint = Vector2.new(0, 0.5) -- Center vertically
+ZebraIcon.Size = UDim2.new(0, 22, 0, 22)
+
+-- Store the main FluentUI window reference so we can access it
+local MainUI
+
+-- Find Fluent UI in CoreGui
+for _, v in pairs(game:GetService("CoreGui"):GetChildren()) do
+    if v:IsA("ScreenGui") and v:FindFirstChild("Main") then
+        local main = v:FindFirstChild("Main")
+        if main:FindFirstChild("Topbar") and main:FindFirstChild("TabList") then
+            MainUI = v
+            break
+        end
+    end
+end
+
+-- Setup toggle button to open/close the Fluent UI
+local IsOpen = true
+Toggle.MouseButton1Click:Connect(function()
+    IsOpen = not IsOpen
+    
+    -- Update toggle button appearance
+    if IsOpen then
+        Toggle.Text = "Close Gui"
+        ZebraIcon.ImageColor3 = Color3.fromRGB(203, 122, 49)
+    else
+        Toggle.Text = "Open Gui"
+        ZebraIcon.ImageColor3 = Color3.fromRGB(150, 150, 150) -- Dimmed when closed
+    end
+    
+    -- Toggle Fluent UI visibility - check if we found it
+    if MainUI then
+        MainUI.Enabled = IsOpen
+    else
+        -- If we couldn't find the Fluent UI directly, let's try the alternative method
+        -- This uses Fluent window's built-in Minimize function
+        Window:Minimize(not IsOpen)
+    end
+end)
+
+-- HSV to RGB conversion function
+local function HSVtoRGB(h, s, v)
+    local i = math.floor(h * 6)
+    local f = h * 6 - i
+    local p = v * (1 - s)
+    local q = v * (1 - f * s)
+    local t = v * (1 - (1 - f) * s)
+    
+    local r, g, b
+    if i % 6 == 0 then r, g, b = v, t, p
+    elseif i % 6 == 1 then r, g, b = q, v, p
+    elseif i % 6 == 2 then r, g, b = p, v, t
+    elseif i % 6 == 3 then r, g, b = p, q, v
+    elseif i % 6 == 4 then r, g, b = t, p, v
+    elseif i % 6 == 5 then r, g, b = v, p, q
+    end
+
+    return Color3.new(r, g, b)
+end
+
+-- Add subtle animation to the Zebra icon
+spawn(function()
+    local h = 0
+    while wait(0.1) do
+        if IsOpen then -- Only animate when open
+            h = (h + 0.01) % 1
+            ZebraIcon.ImageColor3 = HSVtoRGB(h, 0.5, 1)
+        end
+    end
+end)
+
 -- Tabs
 local MainTab = Window:AddTab({ Title = "Main", Icon = "box" })
 local SettingsTab = Window:AddTab({ Title = "Settings", Icon = "settings" })
@@ -167,6 +271,7 @@ OthersTab:AddButton({
         loadstring(game:HttpGet("https://raw.githubusercontent.com/FilteringEnabled/NamelessAdmin/main/Source"))()
     end
 })
+
 MainTab:AddToggle("MyToggle", {
     Title = "esp",
     Description = "Toggle description",
