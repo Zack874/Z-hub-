@@ -123,6 +123,13 @@ local MainTab = Window:AddTab({ Title = "Main", Icon = "box" })
 local SettingsTab = Window:AddTab({ Title = "Settings", Icon = "settings" })
 local OthersTab = Window:AddTab({ Title = "Others", Icon = "file-plus" })
 
+-- FIX: Complete the tabs table that was previously incomplete
+local Tabs = {
+    MainTab = MainTab,
+    SettingsTab = SettingsTab,
+    OthersTab = OthersTab
+}
+
 -- Managers setup
 SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
@@ -255,6 +262,493 @@ MainTab:AddButton({
     end
 })
 
+-- FIX: Changed Tab to MainTab since that's the existing variable
+MainTab:AddButton({
+    Title = "Page Finder",
+    Description = "Find pages in Piggy game",
+    Callback = function()
+-- Piggy Pages Teleport Collector Script
+-- This script teleports directly to pages/notes in Piggy for quick collection
+-- Usage: Copy this script and use with a Roblox executor
+
+local Player = game:GetService("Players").LocalPlayer
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+-- Configuration
+local CONFIG = {
+    SCAN_INTERVAL = 0.5,          -- How often to scan for new pages (seconds)
+    TELEPORT_DELAY = 0.3,         -- Wait time between teleports (seconds)
+    COLLECT_PAUSE = 0.3,          -- Time to wait at each page for collection (seconds)
+    MAX_DISTANCE = 1000,          -- Maximum distance to detect pages (no real limit)
+    HIGHLIGHT_COLOR = Color3.fromRGB(255, 215, 0),  -- Gold highlight color
+    TOGGLE_KEY = Enum.KeyCode.P,  -- Key to toggle script (P by default)
+    AUTO_START = true,            -- Start collecting immediately when script runs
+    AUTO_RETRY_TIME = 2,          -- Time between retrying failed collections (seconds)
+    AUTO_FINISH_DELAY = 1         -- Time to wait after collecting all pages (seconds)
+}
+
+-- Variables
+local collectedPages = 0
+local totalPagesFound = 0
+local isRunning = false
+local isTeleporting = false
+local highlightedPages = {}
+local failedPages = {}
+
+-- Function to create a simple GUI
+local function CreateGUI()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "PiggyTeleportPageCollector"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.Parent = game:GetService("CoreGui")
+    
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Name = "MainFrame"
+    MainFrame.Size = UDim2.new(0, 230, 0, 155)
+    MainFrame.Position = UDim2.new(0.80, 0, 0.15, 0)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Active = true
+    MainFrame.Draggable = true
+    MainFrame.Parent = ScreenGui
+    
+    -- Add rounded corners
+    local UICorner = Instance.new("UICorner")
+    UICorner.CornerRadius = UDim.new(0, 8)
+    UICorner.Parent = MainFrame
+    
+    -- Create title bar
+    local TitleBar = Instance.new("Frame")
+    TitleBar.Name = "TitleBar"
+    TitleBar.Size = UDim2.new(1, 0, 0, 30)
+    TitleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    TitleBar.BorderSizePixel = 0
+    TitleBar.Parent = MainFrame
+    
+    local TitleCorner = Instance.new("UICorner")
+    TitleCorner.CornerRadius = UDim.new(0, 8)
+    TitleCorner.Parent = TitleBar
+    
+    -- Title text
+    local Title = Instance.new("TextLabel")
+    Title.Name = "Title"
+    Title.Size = UDim2.new(1, -10, 1, 0)
+    Title.Position = UDim2.new(0, 10, 0, 0)
+    Title.BackgroundTransparency = 1
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 14
+    Title.Text = "Piggy Page Teleporter"
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Parent = TitleBar
+    
+    -- Stats container
+    local StatsFrame = Instance.new("Frame")
+    StatsFrame.Name = "StatsFrame"
+    StatsFrame.Size = UDim2.new(1, -20, 0, 60)
+    StatsFrame.Position = UDim2.new(0, 10, 0, 40)
+    StatsFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    StatsFrame.BorderSizePixel = 0
+    StatsFrame.Parent = MainFrame
+    
+    local StatsCorner = Instance.new("UICorner")
+    StatsCorner.CornerRadius = UDim.new(0, 6)
+    StatsCorner.Parent = StatsFrame
+    
+    -- Status indicator
+    local StatusLabel = Instance.new("TextLabel")
+    StatusLabel.Name = "StatusLabel"
+    StatusLabel.Size = UDim2.new(1, -10, 0, 20)
+    StatusLabel.Position = UDim2.new(0, 5, 0, 5)
+    StatusLabel.BackgroundTransparency = 1
+    StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    StatusLabel.Font = Enum.Font.Gotham
+    StatusLabel.TextSize = 12
+    StatusLabel.Text = "Status: Idle"
+    StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+    StatusLabel.Parent = StatsFrame
+    
+    -- Pages collected counter
+    local CollectedLabel = Instance.new("TextLabel")
+    CollectedLabel.Name = "CollectedLabel"
+    CollectedLabel.Size = UDim2.new(1, -10, 0, 20)
+    CollectedLabel.Position = UDim2.new(0, 5, 0, 25)
+    CollectedLabel.BackgroundTransparency = 1
+    CollectedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CollectedLabel.Font = Enum.Font.Gotham
+    CollectedLabel.TextSize = 12
+    CollectedLabel.Text = "Collected: 0 pages"
+    CollectedLabel.TextXAlignment = Enum.TextXAlignment.Left
+    CollectedLabel.Parent = StatsFrame
+    
+    -- Total pages found
+    local TotalLabel = Instance.new("TextLabel")
+    TotalLabel.Name = "TotalLabel"
+    TotalLabel.Size = UDim2.new(1, -10, 0, 20)
+    TotalLabel.Position = UDim2.new(0, 5, 0, 45)
+    TotalLabel.BackgroundTransparency = 1
+    TotalLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TotalLabel.Font = Enum.Font.Gotham
+    TotalLabel.TextSize = 12
+    TotalLabel.Text = "Found: 0 pages"
+    TotalLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TotalLabel.Parent = StatsFrame
+    
+    -- Buttons container
+    local ButtonsFrame = Instance.new("Frame")
+    ButtonsFrame.Name = "ButtonsFrame"
+    ButtonsFrame.Size = UDim2.new(1, -20, 0, 40)
+    ButtonsFrame.Position = UDim2.new(0, 10, 0, 105)
+    ButtonsFrame.BackgroundTransparency = 1
+    ButtonsFrame.Parent = MainFrame
+    
+    -- Start button
+    local StartButton = Instance.new("TextButton")
+    StartButton.Name = "StartButton"
+    StartButton.Size = UDim2.new(0.48, 0, 1, 0)
+    StartButton.BackgroundColor3 = Color3.fromRGB(0, 120, 50)
+    StartButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    StartButton.Font = Enum.Font.GothamBold
+    StartButton.TextSize = 13
+    StartButton.Text = "START"
+    StartButton.Parent = ButtonsFrame
+    
+    local StartCorner = Instance.new("UICorner")
+    StartCorner.CornerRadius = UDim.new(0, 6)
+    StartCorner.Parent = StartButton
+    
+    -- Stop button
+    local StopButton = Instance.new("TextButton")
+    StopButton.Name = "StopButton"
+    StopButton.Size = UDim2.new(0.48, 0, 1, 0)
+    StopButton.Position = UDim2.new(0.52, 0, 0, 0)
+    StopButton.BackgroundColor3 = Color3.fromRGB(180, 35, 35)
+    StopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    StopButton.Font = Enum.Font.GothamBold
+    StopButton.TextSize = 13
+    StopButton.Text = "STOP"
+    StopButton.Parent = ButtonsFrame
+    
+    local StopCorner = Instance.new("UICorner")
+    StopCorner.CornerRadius = UDim.new(0, 6)
+    StopCorner.Parent = StopButton
+    
+    -- Hotkey info
+    local HotkeyLabel = Instance.new("TextLabel")
+    HotkeyLabel.Name = "HotkeyLabel"
+    HotkeyLabel.Size = UDim2.new(1, -10, 0, 15)
+    HotkeyLabel.Position = UDim2.new(0, 5, 1, -18)
+    HotkeyLabel.BackgroundTransparency = 1
+    HotkeyLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+    HotkeyLabel.Font = Enum.Font.Gotham
+    HotkeyLabel.TextSize = 9
+    HotkeyLabel.Text = "Toggle with " .. string.sub(tostring(CONFIG.TOGGLE_KEY), 15)
+    HotkeyLabel.TextXAlignment = Enum.TextXAlignment.Center
+    HotkeyLabel.Parent = MainFrame
+    
+    return {
+        ScreenGui = ScreenGui,
+        StatusLabel = StatusLabel,
+        CollectedLabel = CollectedLabel,
+        TotalLabel = TotalLabel,
+        StartButton = StartButton,
+        StopButton = StopButton
+    }
+end
+
+-- Create GUI and get elements
+local GUI = CreateGUI()
+
+-- Notification function
+local function Notify(title, message, duration)
+    duration = duration or 3
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = title,
+        Text = message,
+        Duration = duration
+    })
+end
+
+-- Function to check if an object is likely a page
+local function IsPage(object)
+    if object then
+        local name = object.Name:lower()
+        
+        -- Direct name checks
+        if name:find("page") or name:find("note") or name:find("paper") or name:find("scroll") then
+            return true
+        end
+        
+        -- Check for models that represent pages
+        if object:IsA("Model") then
+            -- Check for page collectible components
+            if object:FindFirstChild("PageCollectible") or object:FindFirstChild("NoteCollectible") then
+                return true
+            end
+            
+            -- Check for UI elements (pages often have UI)
+            if object:FindFirstChild("SurfaceGui") or object:FindFirstChild("BillboardGui") then
+                local gui = object:FindFirstChild("SurfaceGui") or object:FindFirstChild("BillboardGui")
+                if gui and (gui:FindFirstChild("Page") or gui:FindFirstChild("Note")) then
+                    return true
+                end
+            end
+            
+            -- Check for interaction prompts
+            if object:FindFirstChild("ProximityPrompt") and 
+               (name:find("page") or name:find("note") or name:find("collect")) then
+                return true
+            end
+        end
+        
+        -- Check for special properties that Piggy uses for pages
+        if object:FindFirstChild("ClickDetector") and 
+           (name:find("page") or name:find("note") or name:find("collect")) then
+            return true
+        end
+    end
+    
+    return false
+end
+
+-- Function to get the main part of an object
+local function GetMainPart(object)
+    if object:IsA("BasePart") then
+        return object
+    elseif object:IsA("Model") then
+        -- Try to get the important part of the model
+        return object.PrimaryPart or 
+               object:FindFirstChild("Handle") or 
+               object:FindFirstChild("Main") or 
+               object:FindFirstChild("Hitbox") or 
+               object:FindFirstChildWhichIsA("BasePart")
+    end
+    return nil
+end
+
+-- Function to highlight a page
+local function HighlightPage(page)
+    -- Create highlight effect
+    local highlight = Instance.new("Highlight")
+    highlight.FillColor = CONFIG.HIGHLIGHT_COLOR
+    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+    highlight.FillTransparency = 0.3
+    highlight.OutlineTransparency = 0
+    highlight.Adornee = page
+    highlight.Parent = GUI.ScreenGui
+    
+    -- Store highlight for later reference
+    highlightedPages[page] = highlight
+    
+    return highlight
+end
+
+-- Function to find all pages in the workspace
+local function FindPages()
+    local pages = {}
+    
+    for _, object in pairs(workspace:GetDescendants()) do
+        if IsPage(object) then
+            local mainPart = GetMainPart(object)
+            if mainPart then
+                table.insert(pages, object)
+                
+                -- Highlight the page if not already highlighted
+                if not highlightedPages[object] then
+                    HighlightPage(object)
+                end
+            end
+        end
+    end
+    
+    totalPagesFound = #pages
+    GUI.TotalLabel.Text = "Found: " .. totalPagesFound .. " pages"
+    
+    return pages
+end
+
+-- Function to teleport to and collect a page
+local function TeleportToPage(page)
+    if isTeleporting then return false end
+    isTeleporting = true
+    
+    local character = Player.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then
+        isTeleporting = false
+        return false
+    end
+    
+    local mainPart = GetMainPart(page)
+    if not mainPart then
+        isTeleporting = false
+        return false
+    end
+    
+    -- Store original position
+    local originalPosition = character.HumanoidRootPart.CFrame
+    
+    -- Update status
+    GUI.StatusLabel.Text = "Status: Teleporting to page"
+    
+    -- Teleport to the page
+    character.HumanoidRootPart.CFrame = CFrame.new(mainPart.Position)
+    
+    -- Wait for collection to register
+    wait(CONFIG.COLLECT_PAUSE)
+    
+    -- Check if the page still exists to determine if it was collected
+    if page and page.Parent then
+        -- Page still exists, so it wasn't collected
+        table.insert(failedPages, page)
+        
+        -- Return to original position
+        character.HumanoidRootPart.CFrame = originalPosition
+        isTeleporting = false
+        return false
+    else
+        -- Page was collected, increment counter
+        collectedPages = collectedPages + 1
+        GUI.CollectedLabel.Text = "Collected: " .. collectedPages .. " pages"
+        
+        -- Remove highlight from collected page
+        if highlightedPages[page] then
+            highlightedPages[page]:Destroy()
+            highlightedPages[page] = nil
+        end
+        
+        -- Return to original position
+        character.HumanoidRootPart.CFrame = originalPosition
+        isTeleporting = false
+        return true
+    end
+end
+
+-- Function to retry failed pages
+local function RetryFailedPages()
+    if #failedPages > 0 then
+        GUI.StatusLabel.Text = "Status: Retrying failed pages"
+        
+        local pagesToRetry = {}
+        for _, page in pairs(failedPages) do
+            table.insert(pagesToRetry, page)
+        end
+        
+        failedPages = {}
+        
+        for _, page in pairs(pagesToRetry) do
+            if page and page.Parent then
+                wait(CONFIG.TELEPORT_DELAY)
+                TeleportToPage(page)
+            end
+        end
+    end
+end
+
+-- Main collection function
+local function StartCollecting()
+    if isRunning then return end
+    isRunning = true
+    
+    -- Update GUI
+    GUI.StatusLabel.Text = "Status: Running"
+    GUI.StartButton.BackgroundColor3 = Color3.fromRGB(70, 150, 70)
+    
+    Notify("Page Teleporter", "Started collecting pages!", 2)
+    
+    -- Main collection loop
+    while isRunning do
+        -- Find all available pages
+        local pages = FindPages()
+        
+        if #pages > 0 then
+            -- Sort pages by distance if player character exists
+            local character = Player.Character
+            if character and character:FindFirstChild("HumanoidRootPart") then
+                local playerPosition = character.HumanoidRootPart.Position
+                
+                table.sort(pages, function(a, b)
+                    local partA = GetMainPart(a)
+                    local partB = GetMainPart(b)
+                    
+                    if not partA or not partB then return false end
+                    
+                    return (partA.Position - playerPosition).Magnitude < 
+                           (partB.Position - playerPosition).Magnitude
+                end)
+            end
+            
+            -- Teleport to each page
+            for _, page in pairs(pages) do
+                if isRunning and page and page.Parent then
+                    TeleportToPage(page)
+                    wait(CONFIG.TELEPORT_DELAY)
+                end
+            end
+            
+            -- Retry failed pages after a short delay
+            if #failedPages > 0 then
+                wait(CONFIG.AUTO_RETRY_TIME)
+                RetryFailedPages()
+            end
+        else
+            -- No pages found
+            GUI.StatusLabel.Text = "Status: No pages found"
+            wait(CONFIG.SCAN_INTERVAL)
+        end
+        
+        -- Short delay between collection cycles
+        wait(CONFIG.AUTO_FINISH_DELAY)
+    end
+end
+
+-- Function to stop collection
+local function StopCollecting()
+    isRunning = false
+    
+    -- Update GUI
+    GUI.StatusLabel.Text = "Status: Stopped"
+    GUI.StartButton.BackgroundColor3 = Color3.fromRGB(0, 120, 50)
+    
+    Notify("Page Teleporter", "Stopped collecting pages", 2)
+end
+
+-- Set up button functionality
+GUI.StartButton.MouseButton1Click:Connect(function()
+    if not isRunning then
+        StartCollecting()
+    end
+end)
+
+GUI.StopButton.MouseButton1Click:Connect(function()
+    if isRunning then
+        StopCollecting()
+    end
+end)
+
+-- Keyboard toggle
+UserInputService.InputBegan:Connect(function(input, processed)
+    if not processed and input.KeyCode == CONFIG.TOGGLE_KEY then
+        if isRunning then
+            StopCollecting()
+        else
+            StartCollecting()
+        end
+    end
+end)
+
+-- Auto-start if configured
+if CONFIG.AUTO_START then
+    StartCollecting()
+end
+
+-- Initial page scan
+FindPages()
+Notify("Page Teleporter", "Script loaded! Found " .. totalPagesFound .. " pages", 3)
+    end
+})
+
 -- OthersTab Buttons
 OthersTab:AddButton({
     Title = "Infinite Yield",
@@ -272,14 +766,17 @@ OthersTab:AddButton({
     end
 })
 
-MainTab:AddToggle("MyToggle", {
+OthersTab:AddToggle("MyToggle", {
     Title = "esp",
     Description = "Toggle description",
     Default = false,
     Callback = function(state)
-        loadstring(game:HttpGet("https://pastebin.com/raw/s7viVmDR"))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Exunys/ESP-Script/main/ESP.lua"))() 
     end
 })
 
--- Finalize tab
+-- Select default tab
 Window:SelectTab(MainTab)
+
+-- Initialize SaveManager (load your saved configuration)
+SaveManager:LoadAutoloadConfig()
