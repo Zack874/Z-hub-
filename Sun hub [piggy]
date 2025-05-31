@@ -1,0 +1,1078 @@
+-- Load Fluent UI library and managers
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+-- Create main window
+local Window = Fluent:CreateWindow({
+    Title = "Sun hub [piggy]" .. Fluent.Version,
+    SubTitle = "made by Zack",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+-- Create toggle GUI (should be created AFTER the Fluent window)
+local ToggleGui = Instance.new("ScreenGui")
+local Toggle = Instance.new("TextButton")
+local UICorner = Instance.new("UICorner")
+local ZebraIcon = Instance.new("ImageLabel")
+
+-- Properties
+ToggleGui.Name = "Toggle Gui"
+ToggleGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ToggleGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ToggleGui.ResetOnSpawn = false
+
+Toggle.Name = "Toggle"
+Toggle.Parent = ToggleGui
+Toggle.BackgroundColor3 = Color3.fromRGB(29, 29, 29)
+Toggle.Position = UDim2.new(0, 0, 0.454706937, 0)
+Toggle.Size = UDim2.new(0, 80, 0, 38)
+Toggle.Font = Enum.Font.SourceSans
+Toggle.Text = "Close Gui"
+Toggle.TextColor3 = Color3.fromRGB(203, 122, 49)
+Toggle.TextSize = 19.000
+Toggle.Draggable = true
+Toggle.TextXAlignment = Enum.TextXAlignment.Right -- Align text to right to make room for icon
+
+UICorner.Parent = Toggle
+
+-- Add Zebra Icon
+ZebraIcon.Name = "ZebraIcon"
+ZebraIcon.Parent = Toggle -- Parent to the button
+ZebraIcon.BackgroundTransparency = 1
+ZebraIcon.Image = "rbxassetid://6031225816" -- Zebra icon
+ZebraIcon.Position = UDim2.new(0, 5, 0.5, 0)
+ZebraIcon.AnchorPoint = Vector2.new(0, 0.5) -- Center vertically
+ZebraIcon.Size = UDim2.new(0, 22, 0, 22)
+
+-- Store the main FluentUI window reference so we can access it
+local MainUI
+
+-- Find Fluent UI in CoreGui
+spawn(function()
+    wait(1) -- Wait for GUI to fully load
+    for _, v in pairs(game:GetService("CoreGui"):GetChildren()) do
+        if v:IsA("ScreenGui") and v:FindFirstChild("Main") then
+            local main = v:FindFirstChild("Main")
+            if main:FindFirstChild("Topbar") and main:FindFirstChild("TabList") then
+                MainUI = v
+                break
+            end
+        end
+    end
+end)
+
+-- Setup toggle button to open/close the Fluent UI
+local IsOpen = true
+Toggle.MouseButton1Click:Connect(function()
+    IsOpen = not IsOpen
+    
+    -- Update toggle button appearance
+    if IsOpen then
+        Toggle.Text = "Close Gui"
+        ZebraIcon.ImageColor3 = Color3.fromRGB(203, 122, 49)
+    else
+        Toggle.Text = "Open Gui"
+        ZebraIcon.ImageColor3 = Color3.fromRGB(150, 150, 150) -- Dimmed when closed
+    end
+    
+    -- Toggle Fluent UI visibility - check if we found it
+    if MainUI then
+        MainUI.Enabled = IsOpen
+    else
+        -- If we couldn't find the Fluent UI directly, let's try the alternative method
+        pcall(function()
+            Window:Minimize(not IsOpen)
+        end)
+    end
+end)
+
+-- HSV to RGB conversion function
+local function HSVtoRGB(h, s, v)
+    local i = math.floor(h * 6)
+    local f = h * 6 - i
+    local p = v * (1 - s)
+    local q = v * (1 - f * s)
+    local t = v * (1 - (1 - f) * s)
+    
+    local r, g, b
+    if i % 6 == 0 then r, g, b = v, t, p
+    elseif i % 6 == 1 then r, g, b = q, v, p
+    elseif i % 6 == 2 then r, g, b = p, v, t
+    elseif i % 6 == 3 then r, g, b = p, q, v
+    elseif i % 6 == 4 then r, g, b = t, p, v
+    elseif i % 6 == 5 then r, g, b = v, p, q
+    end
+
+    return Color3.new(r, g, b)
+end
+
+-- Add subtle animation to the Zebra icon
+spawn(function()
+    local h = 0
+    while wait(0.1) do
+        if IsOpen then -- Only animate when open
+            h = (h + 0.01) % 1
+            ZebraIcon.ImageColor3 = HSVtoRGB(h, 0.5, 1)
+        end
+    end
+end)
+
+-- Tabs
+local MainTab = Window:AddTab({ Title = "Main", Icon = "box" })
+local SettingsTab = Window:AddTab({ Title = "Settings", Icon = "settings" })
+local OthersTab = Window:AddTab({ Title = "Others", Icon = "file-plus" })
+local TrollsTab = Window:AddTab({ Title = "Troll", Icon = "shield-alert" })
+
+-- Managers setup
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+SaveManager:SetFolder("ZebraHub")
+InterfaceManager:SetFolder("ZebraHub")
+InterfaceManager:BuildInterfaceSection(SettingsTab)
+SaveManager:BuildConfigSection(SettingsTab)
+
+-- Notify user
+Fluent:Notify({
+    Title = "Join our discord!",
+    Content = "Make sure to join our discord and subscribe to my channel!",
+    Duration = 5
+})
+
+-- Tools GUI Button
+MainTab:AddButton({
+    Title = "Tools Gui",
+    Description = "sigma",
+    Callback = function()
+        local PiggyGui = Instance.new("ScreenGui")
+PiggyGui.Name = "PiggyGui"
+PiggyGui.Parent = game.CoreGui
+PiggyGui.ResetOnSpawn = false -- Prevents GUI from disappearing when player respawns
+
+-- Create a main container to help with dragging
+local MainContainer = Instance.new("Frame", PiggyGui)
+MainContainer.Size = UDim2.new(0, 296, 0, 448) -- Combined size of all elements
+MainContainer.Position = UDim2.new(0, 0, 0.342, 0)
+MainContainer.BackgroundTransparency = 1 -- Invisible container
+MainContainer.Name = "MainContainer"
+
+-- Main ScrollingFrame - Fixed to ensure proper scrolling
+local ScrollingFrame = Instance.new("ScrollingFrame", MainContainer)
+ScrollingFrame.BackgroundColor3 = Color3.new(0.15, 0.15, 0.15)
+ScrollingFrame.Position = UDim2.new(0, 0, 0.078, 0) -- Relative to MainContainer
+ScrollingFrame.Size = UDim2.new(0, 296, 0, 388)
+ScrollingFrame.BorderSizePixel = 2
+ScrollingFrame.BorderColor3 = Color3.new(0.3, 0.3, 0.3)
+ScrollingFrame.ScrollBarThickness = 6 -- Make scroll bar more visible
+ScrollingFrame.ScrollBarImageColor3 = Color3.new(0.8, 0.8, 0.8) -- Brighter scroll bar
+ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0) -- Will auto-adjust based on content
+ScrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y -- Automatically resize canvas for content
+
+local UIGridLayout = Instance.new("UIGridLayout", ScrollingFrame)
+UIGridLayout.CellSize = UDim2.new(0, 90, 0, 90)
+UIGridLayout.CellPadding = UDim2.new(0, 5, 0, 5)
+UIGridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+-- Add some padding to prevent items from sticking to edges
+local UIPadding = Instance.new("UIPadding", ScrollingFrame)
+UIPadding.PaddingLeft = UDim.new(0, 5)
+UIPadding.PaddingRight = UDim.new(0, 5)
+UIPadding.PaddingTop = UDim.new(0, 5)
+UIPadding.PaddingBottom = UDim.new(0, 5)
+
+-- Status Label
+local StatusLabel = Instance.new("TextLabel", MainContainer)
+StatusLabel.Size = UDim2.new(0, 296, 0, 25)
+StatusLabel.Position = UDim2.new(0, 0, 0.038, 0) -- Relative to MainContainer
+StatusLabel.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+StatusLabel.BorderSizePixel = 0
+StatusLabel.Text = "Searching for items..."
+StatusLabel.TextColor3 = Color3.new(1, 1, 1)
+StatusLabel.Font = Enum.Font.SourceSans
+StatusLabel.TextSize = 14
+
+-- Title frame
+local TitleFrame = Instance.new("Frame", MainContainer)
+TitleFrame.Size = UDim2.new(0, 296, 0, 30)
+TitleFrame.Position = UDim2.new(0, 0, 0, 0) -- At the top of MainContainer
+TitleFrame.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+TitleFrame.BorderSizePixel = 0
+
+local TitleLabel = Instance.new("TextLabel", TitleFrame)
+TitleLabel.Size = UDim2.new(0, 200, 0, 30)
+TitleLabel.Position = UDim2.new(0, 10, 0, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "Piggy Items Finder"
+TitleLabel.TextColor3 = Color3.new(1, 1, 1)
+TitleLabel.Font = Enum.Font.SourceSansBold
+TitleLabel.TextSize = 18
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local MinimizeButton = Instance.new("TextButton", MainContainer)
+MinimizeButton.Size = UDim2.new(0, 70, 0, 25)
+MinimizeButton.Position = UDim2.new(0, 224, 0.038, 0) -- Relative to MainContainer
+MinimizeButton.BackgroundColor3 = Color3.new(1, 0, 0)
+MinimizeButton.Text = "Minimize"
+MinimizeButton.TextColor3 = Color3.new(1, 1, 1)
+MinimizeButton.BorderSizePixel = 1
+MinimizeButton.BorderColor3 = Color3.new(0.5, 0, 0)
+MinimizeButton.Font = Enum.Font.SourceSansBold
+MinimizeButton.TextSize = 14
+MinimizeButton.ZIndex = 10 -- Ensure button stays on top
+
+-- Function to check if we're in Piggy Book 1 or Book 2
+local function getPiggyVersion()
+    local placeId = game.PlaceId
+    
+    -- These IDs can be updated based on the actual game IDs
+    local piggyBook1Ids = {
+        4623386862, -- Piggy
+        5123763375, -- Piggy Chapter 12
+        -- Add other Book 1 place IDs here
+    }
+    
+    for _, id in pairs(piggyBook1Ids) do
+        if placeId == id then
+            return "Book1"
+        end
+    end
+    
+    -- If not Book 1, assume Book 2 or other Piggy game
+    return "Book2"
+end
+
+local isMinimized = false
+local originalMainContainerSize = MainContainer.Size
+
+MinimizeButton.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    
+    if isMinimized then
+        -- Minimized state
+        ScrollingFrame.Visible = false
+        StatusLabel.Visible = false
+        MinimizeButton.Text = "Restore"
+        MinimizeButton.Position = UDim2.new(0, 0, 0, TitleFrame.Size.Y.Offset)
+        MainContainer.Size = UDim2.new(0, 296, 0, TitleFrame.Size.Y.Offset + MinimizeButton.Size.Y.Offset)
+    else
+        -- Restored state
+        ScrollingFrame.Visible = true
+        StatusLabel.Visible = true
+        MinimizeButton.Text = "Minimize"
+        MinimizeButton.Position = UDim2.new(0, 224, 0.038, 0)
+        MainContainer.Size = originalMainContainerSize
+    end
+end)
+
+-- Function to update canvas size based on contents
+local function updateCanvasSize()
+    local contentSize = UIGridLayout.AbsoluteContentSize
+    ScrollingFrame.CanvasSize = UDim2.new(0, contentSize.X, 0, contentSize.Y + 10) -- Add some padding at bottom
+end
+
+-- IMPROVED DRAGGABLE FUNCTIONALITY
+-- Make the GUI draggable with better implementation
+local UserInputService = game:GetService("UserInputService")
+local dragToggle = nil
+local dragSpeed = 0.25
+local dragStart = nil
+local startPos = nil
+
+local function updateDrag(input)
+    local delta = input.Position - dragStart
+    local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                               startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    game:GetService("TweenService"):Create(MainContainer, TweenInfo.new(dragSpeed), {Position = position}):Play()
+end
+
+-- Make TitleFrame draggable (header area)
+TitleFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragToggle = true
+        dragStart = input.Position
+        startPos = MainContainer.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragToggle = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        if dragToggle then
+            updateDrag(input)
+        end
+    end
+end)
+
+coroutine.wrap(function()
+    while true do
+        wait(1)
+        local gameVersion = getPiggyVersion()
+        local allObjects = workspace:GetDescendants()
+        local items = {}
+        local itemframes = {}
+        
+        -- Get existing item frames
+        for _, v in ipairs(ScrollingFrame:GetChildren()) do
+            if v:IsA("TextButton") then
+                table.insert(itemframes, v)
+            end
+        end
+        
+        -- Clear existing buttons
+        for _, v in ipairs(itemframes) do
+            v:Destroy()
+        end
+
+        -- Find all items based on game version
+        if gameVersion == "Book1" then
+            -- Book 1 item detection
+            for _, obj in ipairs(allObjects) do
+                -- Book 1 typically has ItemPickupScript and a ClickDetector
+                if obj.Name == "ItemPickupScript" and obj.Parent:FindFirstChild("ClickDetector") then
+                    table.insert(items, obj.Parent)
+                end
+            end
+        else
+            -- Book 2 item detection (also including Book 1 detection for compatibility)
+            for _, obj in ipairs(allObjects) do
+                -- Book 1 style
+                if obj.Name == "ItemPickupScript" and obj.Parent:FindFirstChild("ClickDetector") then
+                    table.insert(items, obj.Parent)
+                end
+                
+                -- Book 2 style - Items with ProximityPrompt
+                if (obj:IsA("Tool") or obj:IsA("Model")) and obj:FindFirstChild("ProximityPrompt") then
+                    table.insert(items, obj)
+                end
+                
+                -- Alternative Book 2 detection for items
+                if obj.Name == "ItemHandler" and obj.Parent then
+                    table.insert(items, obj.Parent)
+                end
+                
+                -- Check for keys and important items specifically
+                if (obj.Name:match("[Kk]ey") or obj.Name:match("[Ii]tem")) and 
+                   (obj:FindFirstChild("ClickDetector") or obj:FindFirstChild("ProximityPrompt")) then
+                    table.insert(items, obj)
+                end
+                
+                -- Additional Book 2 detection
+                if obj:IsA("Model") and obj:FindFirstChild("Handle") and
+                   (obj:FindFirstChild("ProximityPrompt") or obj:FindFirstChild("ClickDetector")) then
+                    table.insert(items, obj)
+                end
+            end
+        end
+
+        -- Update status label
+        if #items == 0 then
+            StatusLabel.Text = "No items found. Keep searching!"
+        else
+            StatusLabel.Text = #items .. " items found. Click to collect!"
+        end
+
+        -- Create buttons for found items
+        for i, object in ipairs(items) do
+            local ItemFrame = Instance.new("TextButton", ScrollingFrame)
+            ItemFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+            ItemFrame.BorderSizePixel = 1
+            ItemFrame.BorderColor3 = Color3.new(0.3, 0.3, 0.3)
+            ItemFrame.Text = ""
+            ItemFrame.LayoutOrder = i
+            ItemFrame.AutoButtonColor = true -- Shows when hovering
+            
+            -- Create a viewport to show the item
+            local View = Instance.new("ViewportFrame", ItemFrame)
+            View.Size = UDim2.new(1, -10, 0.8, -5)
+            View.Position = UDim2.new(0, 5, 0, 5)
+            View.BackgroundTransparency = 1
+            View.BorderSizePixel = 0
+            
+            -- Item name label
+            local nameLabel = Instance.new("TextLabel", ItemFrame)
+            nameLabel.Size = UDim2.new(1, 0, 0.2, 0)
+            nameLabel.Position = UDim2.new(0, 0, 0.8, 0)
+            nameLabel.BackgroundTransparency = 1
+            nameLabel.Text = object.Name
+            nameLabel.TextColor3 = Color3.new(1, 1, 1)
+            nameLabel.TextSize = 12
+            nameLabel.Font = Enum.Font.SourceSans
+            nameLabel.TextWrapped = true
+            
+            -- Clone the object for the viewport
+            local clone
+            local success, errorMsg = pcall(function()
+                clone = object:Clone()
+                clone.Parent = View
+            end)
+            
+            if not success then
+                -- If cloning fails, just show the name without a preview
+                View.Visible = false
+                nameLabel.Size = UDim2.new(1, 0, 1, 0)
+                nameLabel.Position = UDim2.new(0, 0, 0, 0)
+                nameLabel.TextSize = 14
+            else
+                -- Position camera to show the item well
+                local cam = Instance.new("Camera")
+                cam.CameraType = Enum.CameraType.Fixed
+                
+                -- Calculate proper camera position based on the object's size
+                local objectSize = 1
+                local objectPosition
+                
+                -- Try to get position data (different methods depending on object type)
+                if object:IsA("Model") and object:FindFirstChild("PrimaryPart") then
+                    objectPosition = object.PrimaryPart.Position
+                    objectSize = object:GetExtentsSize().Magnitude * 0.5
+                elseif object:FindFirstChild("Handle") then
+                    objectPosition = object.Handle.Position
+                    objectSize = object.Handle.Size.Magnitude * 0.5
+                elseif object:IsA("BasePart") then
+                    objectPosition = object.Position
+                    objectSize = object.Size.Magnitude * 0.5
+                else
+                    -- Default position if we can't determine
+                    objectPosition = Vector3.new(0, 0, 0)
+                end
+                
+                -- Set up camera
+                cam.CFrame = CFrame.new(objectPosition + Vector3.new(0, objectSize * 0.5, objectSize * 2), objectPosition)
+                View.CurrentCamera = cam
+                cam.Parent = View
+            end
+            
+            -- Click behavior
+            ItemFrame.MouseButton1Down:Connect(function()
+                local char = game.Players.LocalPlayer.Character
+                if not char then return end
+                
+                local root = char:FindFirstChild("HumanoidRootPart")
+                if not root then return end
+                
+                local originalCFrame = root.CFrame
+                local humanoid = char:FindFirstChild("Humanoid")
+                local originalWalkSpeed = humanoid and humanoid.WalkSpeed or 16
+                
+                -- Temporarily increase speed to make collection faster
+                if humanoid then
+                    humanoid.WalkSpeed = 50
+                end
+                
+                -- Get object position for teleporting
+                local objectPosition
+                if object:IsA("Model") and object:FindFirstChild("PrimaryPart") then
+                    objectPosition = object.PrimaryPart.Position
+                elseif object:FindFirstChild("Handle") then
+                    objectPosition = object.Handle.Position
+                elseif object:IsA("BasePart") then
+                    objectPosition = object.Position
+                else
+                    -- Get position of any BasePart in the object
+                    for _, part in pairs(object:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            objectPosition = part.Position
+                            break
+                        end
+                    end
+                    
+                    -- If no position found, use player's current position
+                    if not objectPosition then
+                        objectPosition = root.Position
+                    end
+                end
+                
+                -- Teleport to item
+                root.CFrame = CFrame.new(objectPosition + Vector3.new(0, 3, 0))
+                
+                -- Interact with the item based on its type
+                if object:FindFirstChild("ClickDetector") then
+                    -- Book 1 style interaction
+                    wait(0.1)
+                    fireclickdetector(object.ClickDetector)
+                elseif object.Parent and object.Parent:FindFirstChild("ClickDetector") then
+                    -- Sometimes the click detector is in the parent
+                    wait(0.1)
+                    fireclickdetector(object.Parent.ClickDetector)
+                elseif object:FindFirstChild("ProximityPrompt") then
+                    -- Book 2 style interaction
+                    wait(0.1)
+                    fireproximityprompt(object.ProximityPrompt)
+                elseif object.Parent and object.Parent:FindFirstChild("ProximityPrompt") then
+                    -- Sometimes the proximity prompt is in the parent
+                    wait(0.1)
+                    fireproximityprompt(object.Parent.ProximityPrompt)
+                end
+                
+                -- Try to find nested ProximityPrompts as well
+                for _, prompt in pairs(object:GetDescendants()) do
+                    if prompt:IsA("ProximityPrompt") then
+                        wait(0.1)
+                        fireproximityprompt(prompt)
+                    end
+                end
+                
+                -- Return to original position and speed
+                wait(0.3)
+                root.CFrame = originalCFrame
+                if humanoid then
+                    humanoid.WalkSpeed = originalWalkSpeed
+                end
+            end)
+        end
+        
+        -- Update the ScrollingFrame's canvas size
+        updateCanvasSize()
+    end
+end)()
+
+-- Add notification when script loads
+local NotificationGui = Instance.new("ScreenGui")
+NotificationGui.Parent = game.CoreGui
+NotificationGui.Name = "PiggyNotification"
+NotificationGui.ResetOnSpawn = false
+
+local NotificationFrame = Instance.new("Frame", NotificationGui)
+NotificationFrame.Size = UDim2.new(0, 300, 0, 70)
+NotificationFrame.Position = UDim2.new(0.5, -150, 0.8, 0)
+NotificationFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+NotificationFrame.BorderSizePixel = 2
+NotificationFrame.BorderColor3 = Color3.new(0.3, 0.3, 0.3)
+NotificationFrame.Active = true -- Required for dragging
+
+-- IMPROVED NOTIFICATION DRAGGING
+-- Make the notification draggable with same improved logic
+local notifDragToggle = nil
+local notifDragStart = nil
+local notifStartPos = nil
+
+NotificationFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        notifDragToggle = true
+        notifDragStart = input.Position
+        notifStartPos = NotificationFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                notifDragToggle = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        if notifDragToggle then
+            local delta = input.Position - notifDragStart
+            local position = UDim2.new(notifStartPos.X.Scale, notifStartPos.X.Offset + delta.X,
+                                       notifStartPos.Y.Scale, notifStartPos.Y.Offset + delta.Y)
+            game:GetService("TweenService"):Create(NotificationFrame, TweenInfo.new(dragSpeed), {Position = position}):Play()
+        end
+    end
+end)
+
+local NotificationText = Instance.new("TextLabel", NotificationFrame)
+NotificationText.Size = UDim2.new(1, -10, 1, -10)
+NotificationText.Position = UDim2.new(0, 5, 0, 5)
+NotificationText.BackgroundTransparency = 1
+NotificationText.Text = "✅ Piggy Items GUI loaded! Now supports both Book 1 & Book 2 items with improved drag functionality!"
+NotificationText.TextColor3 = Color3.new(1, 1, 1)
+NotificationText.TextSize = 14
+NotificationText.Font = Enum.Font.SourceSans
+NotificationText.TextWrapped = true
+
+-- Fade out notification
+spawn(function()
+    wait(5)
+    for i = 1, 10 do
+        NotificationFrame.BackgroundTransparency = i/10
+        NotificationText.TextTransparency = i/10
+        NotificationFrame.BorderSizePixel = math.floor(2 * (1 - i/10))
+        wait(0.1)
+    end
+    NotificationGui:Destroy()
+end)
+    end
+})
+
+
+MainTab:AddButton({
+    Title = "Fly",
+    Description = "Very important button",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
+    end
+})
+
+MainTab:AddButton({
+    Title = "Invisible",
+    Description = "Very important button",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Invisible-script-20557"))()
+    end
+})
+
+MainTab:AddButton({
+    Title = "Page Finder",
+    Description = "Find pages in Piggy game",
+    Callback = function()
+        -- Auto Page Collector Script for Roblox
+        local autoCollectEnabled = true
+        local notificationDelay = 1
+        local debugMode = false
+
+        local player = game:GetService("Players").LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+        local function findCollectibles()
+            local collectibles = {}
+            local potentialNames = {"Page", "Note", "Collectible", "CollectiblePaper", "PagePart"}
+            
+            for _, v in pairs(workspace:GetDescendants()) do
+                for _, name in ipairs(potentialNames) do
+                    if v.Name:lower():find(name:lower()) or (v:IsA("Model") and v.Name:lower():find("page")) then
+                        if v:FindFirstChild("TouchInterest") or v:FindFirstChildWhichIsA("ClickDetector") then
+                            table.insert(collectibles, v)
+                        end
+                    end
+                end
+                
+                if v:FindFirstChildWhichIsA("ProximityPrompt") then
+                    table.insert(collectibles, v)
+                end
+            end
+            
+            return collectibles
+        end
+
+        local function collectPage(page)
+            if not page or not page:IsDescendantOf(workspace) then return end
+            
+            local originalPosition = humanoidRootPart.CFrame
+            humanoidRootPart.CFrame = page.CFrame or page:GetPivot()
+            
+            local clickDetector = page:FindFirstChildWhichIsA("ClickDetector")
+            local proximityPrompt = page:FindFirstChildWhichIsA("ProximityPrompt")
+            
+            if clickDetector then
+                fireclickdetector(clickDetector)
+            elseif proximityPrompt then
+                fireproximityprompt(proximityPrompt)
+            else
+                firetouchinterest(humanoidRootPart, page, 0)
+                wait(0.1)
+                firetouchinterest(humanoidRootPart, page, 1)
+            end
+            
+            wait(0.2)
+            humanoidRootPart.CFrame = originalPosition
+        end
+
+        spawn(function()
+            while autoCollectEnabled do
+                local collectibles = findCollectibles()
+                
+                for _, page in ipairs(collectibles) do
+                    collectPage(page)
+                    wait(notificationDelay)
+                end
+                
+                wait(2)
+            end
+        end)
+        
+        print("✅ Page Finder Started!")
+    end
+})
+
+-- OthersTab Buttons
+OthersTab:AddButton({
+    Title = "Infinite Yield",
+    Description = "Very important button",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+    end
+})
+
+OthersTab:AddButton({
+    Title = "Nameless Admin",
+    Description = "Very important button",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/FilteringEnabled/NamelessAdmin/main/Source"))()
+    end
+})
+
+-- Fixed Spam Door Toggle
+local spamDoorConnection = nil
+TrollsTab:AddToggle("SpamDoor", {
+    Title = "Spam door",
+    Description = "Toggle description", 
+    Default = false,
+    Callback = function(state)
+        if state then
+            -- Start spam door script
+            print("🚪 Spam Door Started!")
+            
+            local Players = game:GetService("Players")
+            local RunService = game:GetService("RunService")
+            local Workspace = game:GetService("Workspace")
+
+            local player = Players.LocalPlayer
+            local MAX_DISTANCE = 12
+            local openedDoors = {}
+
+            local function getCharacter()
+                return player.Character or player.CharacterAdded:Wait()
+            end
+
+            local function getHumanoidRootPart()
+                local char = getCharacter()
+                return char and char:FindFirstChild("HumanoidRootPart")
+            end
+
+            local function findDoors()
+                local doors = {}
+                
+                local mapFolder = Workspace:FindFirstChild("Map")
+                if mapFolder then
+                    for _, obj in pairs(mapFolder:GetDescendants()) do
+                        if obj:IsA("ClickDetector") then
+                            local parent = obj.Parent
+                            if parent and (parent.Name:lower():find("door") or 
+                               parent.Parent and parent.Parent.Name:lower():find("door")) then
+                                table.insert(doors, {
+                                    clickDetector = obj,
+                                    part = parent,
+                                    name = parent.Name
+                                })
+                            end
+                        end
+                    end
+                end
+                
+                for _, obj in pairs(Workspace:GetDescendants()) do
+                    if obj:IsA("ClickDetector") then
+                        local parent = obj.Parent
+                        if parent and (
+                            parent.Name:lower():find("door") or
+                            parent.Name:lower():find("gate") or
+                            (parent:IsA("Model") and parent:FindFirstChild("Door")) or
+                            (parent:IsA("Part") and parent.Size.Y > 5 and parent.Size.X > 3)
+                        ) then
+                            local isDuplicate = false
+                            for _, door in pairs(doors) do
+                                if door.clickDetector == obj then
+                                    isDuplicate = true
+                                    break
+                                end
+                            end
+                            
+                            if not isDuplicate then
+                                table.insert(doors, {
+                                    clickDetector = obj,
+                                    part = parent,
+                                    name = parent.Name
+                                })
+                            end
+                        end
+                    end
+                end
+                
+                return doors
+            end
+
+            local function getDistance(door)
+                local hrp = getHumanoidRootPart()
+                if not hrp or not door.part then
+                    return math.huge
+                end
+                
+                local doorPos = door.part:IsA("Model") and door.part.PrimaryPart and door.part.PrimaryPart.Position or door.part.Position
+                return (hrp.Position - doorPos).Magnitude
+            end
+
+            local function interactWithDoor(door)
+                if door.clickDetector and door.clickDetector.Parent then
+                    pcall(function()
+                        fireclickdetector(door.clickDetector)
+                    end)
+                end
+            end
+
+            local function spamDoors()
+                local hrp = getHumanoidRootPart()
+                if not hrp then return end
+                
+                local doors = findDoors()
+                
+                for _, door in pairs(doors) do
+                    local distance = getDistance(door)
+                    
+                    if distance then
+                        interactWithDoor(door)
+                    end
+                end
+            end
+
+            spamDoorConnection = RunService.Heartbeat:Connect(function()
+                pcall(spamDoors)
+            end)
+            
+        else
+            -- Stop spam door script
+            if spamDoorConnection then
+                spamDoorConnection:Disconnect()
+                spamDoorConnection = nil
+                print("❌ Spam Door Stopped!")
+            end
+        end
+    end
+})
+ -- Function to add highlight to a player's character
+local function addHighlight(character)
+    if not character:FindFirstChild("Highlight") then
+        local highlight = Instance.new("Highlight")
+        highlight.Name = "Highlight"
+        highlight.FillColor = Color3.fromRGB(0, 255, 0) -- Red color
+        highlight.OutlineColor = Color3.fromRGB(0, 255, 0) -- White outline
+        highlight.FillTransparency = 0.5
+        highlight.OutlineTransparency = 0
+        highlight.Adornee = character
+        highlight.Parent = character
+    end
+end
+
+-- Function to remove highlight from a player's character
+local function removeHighlight(character)
+    local highlight = character:FindFirstChild("Highlight")
+    if highlight then
+        highlight:Destroy()
+    end
+end
+local ESPEnabled = false -- This variable stores toggle state
+
+local function updateESP()
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer then
+            local character = player.Character
+            if character then
+                if ESPEnabled then
+                    addHighlight(character)
+                else
+                    removeHighlight(character)
+                end
+            end
+        end
+    end
+end
+local ESPToggle = OthersTab:AddToggle("ESP_Toggle", {
+    Title = "ESP players",
+    Description = "Toggle ESP on/off",
+    Default = false,
+    Callback = function(state)
+        ESPEnabled = state -- Save toggle state
+        updateESP() -- Apply ESP changes when toggled
+    end
+})
+game.Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(character)
+        if ESPEnabled then
+            addHighlight(character)
+        end
+    end)
+end)
+
+local espEnabled = false
+
+local function isPiggyBot(model)
+    local name = model.Name:lower()
+    return name:find("bot") or name:find("piggy")
+end
+
+local function addHighlight(model)
+    if not model:FindFirstChild("Highlight") then
+        local highlight = Instance.new("Highlight")
+        highlight.Name = "Highlight"
+        highlight.FillColor = Color3.fromRGB(0, 0, 255)
+        highlight.OutlineColor = Color3.fromRGB(0, 0, 255)
+        highlight.FillTransparency = 0.5
+        highlight.OutlineTransparency = 0
+        highlight.Adornee = model
+        highlight.Parent = model
+    end
+end
+
+local function removeHighlight(model)
+    local highlight = model:FindFirstChild("Highlight")
+    if highlight then
+        highlight:Destroy()
+    end
+end
+
+local function updateESP()
+    for _, model in ipairs(workspace:GetDescendants()) do
+        if model:IsA("Model") and model:FindFirstChild("Humanoid") then
+            if isPiggyBot(model) then
+                if espEnabled then
+                    addHighlight(model)
+                else
+                    removeHighlight(model)
+                end
+            end
+        end
+    end
+end
+
+-- ✅ Add the Fluent Toggle Button to Others Tab
+OthersTab:AddToggle("PiggyBotESP", {
+    Title = "Piggy Bot ESP",
+    Default = false,
+    Callback = function(state)
+        espEnabled = state
+        updateESP()
+    end
+})
+
+-- Watch for new NPCs
+workspace.DescendantAdded:Connect(function(desc)
+    if espEnabled and desc:IsA("Model") and desc:FindFirstChild("Humanoid") then
+        if isPiggyBot(desc) then
+            addHighlight(desc)
+        end
+    end
+end)
+
+-- Remove highlight when bots are deleted
+workspace.DescendantRemoving:Connect(function(desc)
+    if desc:IsA("Model") then
+        removeHighlight(desc)
+    end
+end)
+-- Item ESP logic
+local itemEspEnabled = false
+
+local function isPiggyItem(object)
+    local name = object.Name:lower()
+    return object:IsA("Tool") or name:find("key") or name:find("gear") or name:find("battery") or name:find("wrench") or name:find("code") or name:find("plank") or name:find("hammer") or name:find("dynamite") or name:find("scissors") or name:find("ladder")
+end
+
+local function addItemESP(object)
+    if not object:FindFirstChild("Highlight") then
+        local highlight = Instance.new("Highlight")
+        highlight.Name = "Highlight"
+        highlight.FillColor = Color3.fromRGB(0, 255, 0) -- Green color for items
+        highlight.OutlineColor = Color3.fromRGB(0, 255, 0)
+        highlight.FillTransparency = 0.3
+        highlight.OutlineTransparency = 0
+        highlight.Adornee = object
+        highlight.Parent = object
+    end
+end
+
+local function removeItemESP(object)
+    local highlight = object:FindFirstChild("Highlight")
+    if highlight then
+        highlight:Destroy()
+    end
+end
+
+local function updateItemESP()
+    for _, item in ipairs(workspace:GetDescendants()) do
+        if isPiggyItem(item) then
+            if itemEspEnabled then
+                addItemESP(item)
+            else
+                removeItemESP(item)
+            end
+        end
+    end
+end
+
+-- Add Toggle to Others tab for Item ESP
+OthersTab:AddToggle("ItemESP", {
+    Title = "Item ESP",
+    Default = false,
+    Callback = function(state)
+        itemEspEnabled = state
+        updateItemESP()
+    end
+})
+
+-- Automatically highlight future items
+workspace.DescendantAdded:Connect(function(desc)
+    if itemEspEnabled and isPiggyItem(desc) then
+        addItemESP(desc)
+    end
+end)
+
+workspace.DescendantRemoving:Connect(function(desc)
+    if isPiggyItem(desc) then
+        removeItemESP(desc)
+    end
+end)
+-- Dropdown list for player teleport
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Get current player names
+local function getPlayerNames()
+    local names = {}
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            table.insert(names, player.Name)
+        end
+    end
+    return names
+end
+
+-- Function to teleport to a player
+local function teleportToPlayer(playerName)
+    local targetPlayer = Players:FindFirstChild(playerName)
+    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = targetPlayer.Character.HumanoidRootPart
+        LocalPlayer.Character.HumanoidRootPart.CFrame = hrp.CFrame + Vector3.new(0, 5, 0)
+    end
+end
+
+-- Add the dropdown to OthersTab
+MainTab:AddDropdown("TeleportToPlayer", {
+    Title = "Teleport to Player",
+    Values = getPlayerNames(),
+    Multi = false,
+    Callback = function(selected)
+        teleportToPlayer(selected)
+    end
+})
+
+-- Optional: Refresh dropdown every few seconds (in case players join/leave)
+task.spawn(function()
+    while true do
+        task.wait(5)
+        local dropdown = OthersTab:Get("TeleportToPlayer")
+        if dropdown then
+            dropdown:SetValues(getPlayerNames())
+        end
+    end
+end)
+
+
+
+
+
+
+
+
+
+
+-- Select default tab
+Window:SelectTab(1)
+
+-- Initialize SaveManager (load your saved configuration)
+SaveManager:LoadAutoloadConfig()
