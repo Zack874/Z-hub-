@@ -1,0 +1,102 @@
+-- Load Rayfield UI
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Sun Hub [Auto Head Aimbot]",
+    LoadingTitle = "Rayfield Interface Suite",
+    LoadingSubtitle = "by Zack",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = nil,
+        FileName = "SunHubConfig"
+    },
+    Discord = { Enabled = false },
+    KeySystem = false
+})
+
+local Tab = Window:CreateTab("Main", 4483362458)
+Tab:CreateSection("Aimbot Settings")
+
+-- Roblox Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+
+-- Aimbot variables
+local AimbotEnabled = false
+local AimbotFOV = 250
+local HitboxExpanded = false
+
+-- Function to get closest head
+local function GetClosestHead()
+    local closest = nil
+    local shortest = AimbotFOV
+    local mousePos = UserInputService:GetMouseLocation()
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+            local head = player.Character.Head
+            local screenPos, onScreen = Camera:WorldToViewportPoint(head.Position)
+
+            if onScreen then
+                local distance = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(mousePos.X, mousePos.Y)).Magnitude
+                if distance < shortest then
+                    shortest = distance
+                    closest = head
+                end
+            end
+        end
+    end
+
+    return closest
+end
+
+-- Aimbot Loop
+RunService.RenderStepped:Connect(function()
+    if AimbotEnabled then
+        local target = GetClosestHead()
+        if target then
+            Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Position)
+        end
+    end
+end)
+
+-- Rayfield Aimbot Toggle
+Tab:CreateToggle({
+    Name = "Enable Aimbot (Auto Head Lock)",
+    CurrentValue = false,
+    Flag = "AimbotToggle",
+    Callback = function(state)
+        AimbotEnabled = state
+    end,
+})
+
+-- Rayfield Hitbox Expander Toggle
+Tab:CreateToggle({
+    Name = "Expand Head Hitboxes",
+    CurrentValue = false,
+    Flag = "HitboxToggle",
+    Callback = function(Value)
+        HitboxExpanded = Value
+
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+                local head = player.Character.Head
+                if HitboxExpanded then
+                    head.Size = Vector3.new(7, 7, 7)
+                    head.Transparency = 0.7
+                    head.Material = Enum.Material.Neon
+                    head.Color = Color3.fromRGB(255, 0, 0)
+                    head.CanCollide = false
+                else
+                    head.Size = Vector3.new(2, 1, 1) -- Reset to normal
+                    head.Transparency = 0
+                    head.Material = Enum.Material.Plastic
+                    head.Color = Color3.fromRGB(255, 255, 255)
+                end
+            end
+        end
+    end,
+})
