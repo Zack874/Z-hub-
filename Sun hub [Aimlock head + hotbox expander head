@@ -1,102 +1,12 @@
--- Load Rayfield UI
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local v0=loadstring(game:HttpGet("https://sirius.menu/rayfield"))();local v1=v0:CreateWindow({Name="Sun Hub [Auto Head Aimbot]",LoadingTitle="Rayfield Interface Suite",LoadingSubtitle="by Zack",ConfigurationSaving={Enabled=true,FolderName=nil,FileName="SunHubConfig"},Discord={Enabled=false},KeySystem=false});local v2=v1:CreateTab("Main",4483362458);v2:CreateSection("Aimbot Settings");local v3=game:GetService("Players");local v4=game:GetService("RunService");local v5=game:GetService("UserInputService");local v6=workspace.CurrentCamera;local v7=v3.LocalPlayer;local v8=false;local v9=1202 -(802 + 150) ;local v10=false;local function v11() local v12=0 -0 ;local v13;local v14;local v15;while true do if (v12==1) then v15=v5:GetMouseLocation();for v21,v22 in ipairs(v3:GetPlayers()) do if ((v22~=v7) and v22.Character and v22.Character:FindFirstChild("Head")) then local v24=0 -0 ;local v25;local v26;local v27;while true do if (v24==(1 + 0)) then if v27 then local v33=997 -(915 + 82) ;local v34;while true do if (v33==(0 -0)) then v34=(Vector2.new(v26.X,v26.Y) -Vector2.new(v15.X,v15.Y)).Magnitude;if (v34<v14) then v14=v34;v13=v25;end break;end end end break;end if (v24==(0 + 0)) then local v30=0 -0 ;while true do if (v30==(1188 -(1069 + 118))) then v24=2 -1 ;break;end if (v30==0) then v25=v22.Character.Head;v26,v27=v6:WorldToViewportPoint(v25.Position);v30=1 -0 ;end end end end end end v12=2;end if (v12==0) then v13=nil;v14=v9;v12=1;end if (v12==(1 + 1)) then return v13;end end end v4.RenderStepped:Connect(function() if v8 then local v20=v11();if v20 then v6.CFrame=CFrame.new(v6.CFrame.Position,v20.Position);end end end);v2:CreateToggle({Name="Enable Aimbot (Auto Head Lock)",CurrentValue=false,Flag="AimbotToggle",Callback=function(v16) v8=v16;end});v2:CreateToggle({Name="Expand Head Hitboxes",CurrentValue=false,Flag="HitboxToggle",Callback=function(v17) local v18=0 -0 ;local v19;while true do if (v18==0) then v19=0;while true do if ((0 + 0)==v19) then v10=v17;for v28,v29 in ipairs(v3:GetPlayers()) do if ((v29~=v7) and v29.Character and v29.Character:FindFirstChild("Head")) then local v31=791 -(368 + 423) ;local v32;while true do if ((0 -0)==v31) then v32=v29.Character.Head;if v10 then local v38=18 -(10 + 8) ;while true do if ((7 -5)==v38) then v32.CanCollide=false;break;end if (v38==1) then v32.Material=Enum.Material.Neon;v32.Color=Color3.fromRGB(255,0,442 -(416 + 26) );v38=6 -4 ;end if (v38==(0 + 0)) then v32.Size=Vector3.new(7,7,12 -5 );v32.Transparency=438.7 -(145 + 293) ;v38=431 -(44 + 386) ;end end else local v39=0;local v40;while true do if (v39==(1486 -(998 + 488))) then v40=0 + 0 ;while true do if (v40==(1 + 0)) then v32.Material=Enum.Material.Plastic;v32.Color=Color3.fromRGB(1027 -(201 + 571) ,1393 -(116 + 1022) ,1061 -806 );break;end if (v40==0) then v32.Size=Vector3.new(2 + 0 ,3 -2 ,3 -2 );v32.Transparency=859 -(814 + 45) ;v40=2 -1 ;end end break;end end end break;end end end end break;end end break;end end end});
+-- âš ï¸ WARNING: integrity protected!
+--[[
+ .____                  ________ ___.    _____                           __                
+ |    |    __ _______   \_____  \\_ |___/ ____\_ __  ______ ____ _____ _/  |_  ___________ 
+ |    |   |  |  \__  \   /   |   \| __ \   __\  |  \/  ___// ___\\__  \\   __\/  _ \_  __ \
+ |    |___|  |  // __ \_/    |    \ \_\ \  | |  |  /\___ \\  \___ / __ \|  | (  <_> )  | \/
+ |_______ \____/(____  /\_______  /___  /__| |____//____  >\___  >____  /__|  \____/|__|   
+         \/          \/         \/    \/                \/     \/     \/                   
+          \_Welcome to LuaObfuscator.com   (Alpha 0.10.9) ~  Much Love, Ferib 
 
-local Window = Rayfield:CreateWindow({
-    Name = "Sun Hub [Auto Head Aimbot]",
-    LoadingTitle = "Rayfield Interface Suite",
-    LoadingSubtitle = "by Zack",
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = nil,
-        FileName = "SunHubConfig"
-    },
-    Discord = { Enabled = false },
-    KeySystem = false
-})
-
-local Tab = Window:CreateTab("Main", 4483362458)
-Tab:CreateSection("Aimbot Settings")
-
--- Roblox Services
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local Camera = workspace.CurrentCamera
-local LocalPlayer = Players.LocalPlayer
-
--- Aimbot variables
-local AimbotEnabled = false
-local AimbotFOV = 250
-local HitboxExpanded = false
-
--- Function to get closest head
-local function GetClosestHead()
-    local closest = nil
-    local shortest = AimbotFOV
-    local mousePos = UserInputService:GetMouseLocation()
-
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
-            local head = player.Character.Head
-            local screenPos, onScreen = Camera:WorldToViewportPoint(head.Position)
-
-            if onScreen then
-                local distance = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(mousePos.X, mousePos.Y)).Magnitude
-                if distance < shortest then
-                    shortest = distance
-                    closest = head
-                end
-            end
-        end
-    end
-
-    return closest
-end
-
--- Aimbot Loop
-RunService.RenderStepped:Connect(function()
-    if AimbotEnabled then
-        local target = GetClosestHead()
-        if target then
-            Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Position)
-        end
-    end
-end)
-
--- Rayfield Aimbot Toggle
-Tab:CreateToggle({
-    Name = "Enable Aimbot (Auto Head Lock)",
-    CurrentValue = false,
-    Flag = "AimbotToggle",
-    Callback = function(state)
-        AimbotEnabled = state
-    end,
-})
-
--- Rayfield Hitbox Expander Toggle
-Tab:CreateToggle({
-    Name = "Expand Head Hitboxes",
-    CurrentValue = false,
-    Flag = "HitboxToggle",
-    Callback = function(Value)
-        HitboxExpanded = Value
-
-        for _, player in ipairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
-                local head = player.Character.Head
-                if HitboxExpanded then
-                    head.Size = Vector3.new(7, 7, 7)
-                    head.Transparency = 0.7
-                    head.Material = Enum.Material.Neon
-                    head.Color = Color3.fromRGB(255, 0, 0)
-                    head.CanCollide = false
-                else
-                    head.Size = Vector3.new(2, 1, 1) -- Reset to normal
-                    head.Transparency = 0
-                    head.Material = Enum.Material.Plastic
-                    head.Color = Color3.fromRGB(255, 255, 255)
-                end
-            end
-        end
-    end,
-})
+]]--
