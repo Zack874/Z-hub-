@@ -1,0 +1,385 @@
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Sun Hub | Break In",
+    LoadingTitle = "by Zack",
+    LoadingSubtitle = "less feature!",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "SunHubData",
+        FileName = "AutoSkip"
+    },
+    Discord = {
+        Enabled = false
+    },
+    KeySystem = false,
+})
+
+-- Main Tab
+local MainTab = Window:CreateTab("Main", 4483362458) -- House Icon
+local MainSection = MainTab:CreateSection("Auto Features")
+
+-- Auto Skip Dialogue Button
+MainTab:CreateButton({
+    Name = "Auto Skip Dialogue",
+    Callback = function()
+        local Players = game:GetService("Players")
+        local LocalPlayer = Players.LocalPlayer
+
+        local function skipDialogue()
+            while true do
+                task.wait(0.1)
+                local PlayerGui = LocalPlayer:FindFirstChild("PlayerGui")
+                if not PlayerGui then continue end
+
+                for _, gui in ipairs(PlayerGui:GetChildren()) do
+                    if gui:IsA("ScreenGui") then
+                        for _, obj in ipairs(gui:GetDescendants()) do
+                            if obj:IsA("TextButton") and obj.Visible and obj.AutoButtonColor and obj.Active then
+                                local text = obj.Text:lower()
+                                if text:find("next") or text:find("continue") or text:find("skip") then
+                                    pcall(function()
+                                        obj:Activate()
+                                    end)
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+
+        task.spawn(skipDialogue)
+    end
+})
+
+-- Unlock Basement Button
+MainTab:CreateButton({
+    Name = "Unlock basement",
+    Callback = function()
+        local Players = game:GetService("Players")
+        local LocalPlayer = Players.LocalPlayer
+        local Backpack = LocalPlayer:WaitForChild("Backpack")
+
+        local function hasBasementKey()
+            for _, item in ipairs(Backpack:GetChildren()) do
+                if item.Name:lower():find("key") or item.Name:lower():find("basement") then
+                    return true
+                end
+            end
+            return false
+        end
+
+        local function tryUnlockDoor()
+            local door = workspace:FindFirstChild("Basement") or workspace:FindFirstChild("BasementDoor") or workspace:FindFirstChild("Basement Door")
+            if door and door:FindFirstChild("ClickDetector") then
+                fireclickdetector(door.ClickDetector)
+                print("[Auto Unlock] Basement door unlocked!")
+            end
+        end
+
+        task.spawn(function()
+            while task.wait(1) do
+                if hasBasementKey() then
+                    tryUnlockDoor()
+                end
+            end
+        end)
+    end,
+})
+
+-- Combat Tab with Sword Icon
+local CombatTab = Window:CreateTab("Combat", 4483362430) -- Sword Icon
+
+local autoFightConnection = nil
+
+CombatTab:CreateToggle({
+    Name = "Auto Fight Criminals",
+    CurrentValue = false,
+    Flag = "Toggle1",
+    Callback = function(enabled)
+        local Players = game:GetService("Players")
+        local LocalPlayer = Players.LocalPlayer
+        local RunService = game:GetService("RunService")
+
+        if enabled then
+            autoFightConnection = RunService.Heartbeat:Connect(function()
+                local Character = LocalPlayer.Character
+                if not Character then return end
+                local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+                local RootPart = Character:FindFirstChild("HumanoidRootPart")
+                if not Humanoid or not RootPart then return end
+
+                local ATTACK_RANGE = 10
+
+                local function getNearbyCriminals()
+                    local criminals = {}
+                    for _, npc in ipairs(workspace:GetChildren()) do
+                        if npc:IsA("Model") and npc ~= Character then
+                            if npc.Name:lower():find("criminal") or npc.Name:lower():find("npc") then
+                                local npcHumanoid = npc:FindFirstChildOfClass("Humanoid")
+                                local npcRoot = npc:FindFirstChild("HumanoidRootPart")
+                                if npcHumanoid and npcRoot and npcHumanoid.Health > 0 then
+                                    local distance = (RootPart.Position - npcRoot.Position).Magnitude
+                                    if distance <= ATTACK_RANGE then
+                                        table.insert(criminals, npc)
+                                    end
+                                end
+                            end
+                        end
+                    end
+                    return criminals
+                end
+
+                local function attack(target)
+                    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+                    local attackEvent = ReplicatedStorage:FindFirstChild("PunchEvent") or ReplicatedStorage:FindFirstChild("AttackEvent")
+                    if attackEvent then
+                        attackEvent:FireServer(target)
+                        print("[Auto Fight] Attacking "..target.Name)
+                    end
+                end
+
+                local criminals = getNearbyCriminals()
+                for _, criminal in ipairs(criminals) do
+                    attack(criminal)
+                    task.wait(0.5)
+                end
+            end)
+        else
+            if autoFightConnection then
+                autoFightConnection:Disconnect()
+                autoFightConnection = nil
+            end
+        end
+    end,
+})
+
+-- ESP Tab
+local ESPTab = Window:CreateTab("ESP", "search")
+
+ESPTab:CreateToggle({
+    Name = "esp player",
+    CurrentValue = false,
+    Flag = "ToggleESP",
+    Callback = function(enabled)
+        local Players = game:GetService("Players")
+        local LocalPlayer = Players.LocalPlayer
+
+        local HIGHLIGHT_COLOR = Color3.fromRGB(0, 255, 0) -- Bright green
+
+        local function highlightCharacter(character)
+            if not character or character:FindFirstChildOfClass("Highlight") then return end
+            local highlight = Instance.new("Highlight")
+            highlight.Adornee = character
+            highlight.FillColor = HIGHLIGHT_COLOR
+            highlight.OutlineColor = Color3.new(0, 0, 0) -- Black outline
+            highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+            highlight.Parent = character
+        end
+
+        local function removeHighlight(character)
+            local highlight = character and character:FindFirstChildOfClass("Highlight")
+            if highlight then
+                highlight:Destroy()
+            end
+        end
+
+        if enabled then
+            -- Highlight existing players (except yourself)
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer then
+                    if player.Character then
+                        highlightCharacter(player.Character)
+                    end
+                    player.CharacterAdded:Connect(function(char)
+                        highlightCharacter(char)
+                    end)
+                end
+            end
+
+            -- Highlight players who join later
+            Players.PlayerAdded:Connect(function(player)
+                if player ~= LocalPlayer then
+                    player.CharacterAdded:Connect(function(char)
+                        highlightCharacter(char)
+                    end)
+                end
+            end)
+
+            -- Remove highlight when player leaves
+            Players.PlayerRemoving:Connect(function(player)
+                if player.Character then
+                    removeHighlight(player.Character)
+                end
+            end)
+        else
+            -- Remove highlights from all players when toggled off
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player.Character then
+                    removeHighlight(player.Character)
+                end
+            end
+        end
+    end,
+})
+local criminalESPConnection = nil
+local criminalHighlights = {}
+local criminalChildAddedConnection = nil
+
+ESPTab:CreateToggle({
+    Name = "ESP Criminals",
+    CurrentValue = false,
+    Flag = "ToggleCriminalESP",
+    Callback = function(enabled)
+        local CRIMINAL_HIGHLIGHT_COLOR = Color3.fromRGB(255, 115, 0)
+
+        local function isCriminal(model)
+            if model:IsA("Model") and model:FindFirstChildOfClass("Humanoid") then
+                local name = model.Name:lower()
+                return name:find("criminal") or name:find("enemy") or name:find("npc")
+            end
+            return false
+        end
+
+        local function highlightCriminal(model)
+            if not model or criminalHighlights[model] then return end
+            local root = model:FindFirstChild("HumanoidRootPart")
+            if not root then return end
+
+            local highlight = Instance.new("Highlight")
+            highlight.Name = "CriminalESP"
+            highlight.Adornee = root
+            highlight.FillColor = CRIMINAL_HIGHLIGHT_COLOR
+            highlight.OutlineColor = Color3.new(0, 0, 0)
+            highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+            highlight.Parent = root
+
+            criminalHighlights[model] = highlight
+        end
+
+        local function clearHighlights()
+            for model, highlight in pairs(criminalHighlights) do
+                if highlight and highlight.Parent then
+                    highlight:Destroy()
+                end
+            end
+            criminalHighlights = {}
+        end
+
+        if enabled then
+            -- Initial scan for criminals
+            for _, model in ipairs(workspace:GetChildren()) do
+                if isCriminal(model) then
+                    highlightCriminal(model)
+                end
+            end
+
+            -- Continuously scan for newly spawned criminals
+            criminalESPConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                for _, model in ipairs(workspace:GetChildren()) do
+                    if isCriminal(model) and not criminalHighlights[model] then
+                        highlightCriminal(model)
+                    end
+                end
+            end)
+
+            -- Detect newly added criminals in real-time
+            criminalChildAddedConnection = workspace.ChildAdded:Connect(function(child)
+                if isCriminal(child) then
+                    highlightCriminal(child)
+                end
+            end)
+        else
+            if criminalESPConnection then
+                criminalESPConnection:Disconnect()
+                criminalESPConnection = nil
+            end
+            if criminalChildAddedConnection then
+                criminalChildAddedConnection:Disconnect()
+                criminalChildAddedConnection = nil
+            end
+            clearHighlights()
+        end
+    end,
+})
+local criminalESPConnection = nil
+local criminalHighlights = {}
+local criminalChildAddedConnection = nil
+
+ESPTab:CreateToggle({
+    Name = "ESP Criminals",
+    CurrentValue = false,
+    Flag = "ToggleCriminalESP",
+    Callback = function(enabled)
+        local CRIMINAL_HIGHLIGHT_COLOR = Color3.fromRGB(255, 115, 0)
+
+        local function isCriminal(model)
+            if model:IsA("Model") and model:FindFirstChildOfClass("Humanoid") then
+                local name = model.Name:lower()
+                return name:find("criminal") or name:find("enemy") or name:find("npc")
+            end
+            return false
+        end
+
+        local function highlightCriminal(model)
+            if not model or criminalHighlights[model] then return end
+            local root = model:FindFirstChild("HumanoidRootPart")
+            if not root then return end
+
+            local highlight = Instance.new("Highlight")
+            highlight.Name = "CriminalESP"
+            highlight.Adornee = root
+            highlight.FillColor = CRIMINAL_HIGHLIGHT_COLOR
+            highlight.OutlineColor = Color3.new(0, 0, 0)
+            highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+            highlight.Parent = root
+
+            criminalHighlights[model] = highlight
+        end
+
+        local function clearHighlights()
+            for model, highlight in pairs(criminalHighlights) do
+                if highlight and highlight.Parent then
+                    highlight:Destroy()
+                end
+            end
+            criminalHighlights = {}
+        end
+
+        if enabled then
+            -- Initial scan for criminals
+            for _, model in ipairs(workspace:GetChildren()) do
+                if isCriminal(model) then
+                    highlightCriminal(model)
+                end
+            end
+
+            -- Continuously scan for newly spawned criminals
+            criminalESPConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                for _, model in ipairs(workspace:GetChildren()) do
+                    if isCriminal(model) and not criminalHighlights[model] then
+                        highlightCriminal(model)
+                    end
+                end
+            end)
+
+            -- Detect newly added criminals in real-time
+            criminalChildAddedConnection = workspace.ChildAdded:Connect(function(child)
+                if isCriminal(child) then
+                    highlightCriminal(child)
+                end
+            end)
+        else
+            if criminalESPConnection then
+                criminalESPConnection:Disconnect()
+                criminalESPConnection = nil
+            end
+            if criminalChildAddedConnection then
+                criminalChildAddedConnection:Disconnect()
+                criminalChildAddedConnection = nil
+            end
+            clearHighlights()
+        end
+    end,
+})
